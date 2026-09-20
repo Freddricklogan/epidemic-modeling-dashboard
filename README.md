@@ -24,6 +24,8 @@ differences are visible rather than described.
 It is a **teaching instrument**. The data are synthetic and the parameters are
 illustrative, not fitted — the interface says so in both places a reader looks.
 
+**[→ Read the full case study](docs/CASE_STUDY.md)**
+
 ## 2. Demonstrated Competencies & Technical Skills
 
 - **Systems Architecture & CS** — A strict split between a pure engine
