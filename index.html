@@ -1,1685 +1,197 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Epidemic Modeling Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #ffffff 0%, #ffffff 100%);
-            color: #5a6b86;
-            line-height: 1.6;
-            min-height: 100vh;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 1800px;
-            margin: 0 auto;
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid #1f4e8c;
-        }
-
-        h1 {
-            color: #1f4e8c;
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            letter-spacing: 1px;
-        }
-
-        .subtitle {
-            color: #5a6b86;
-            font-size: 1.1em;
-        }
-
-        .main-grid {
-            display: grid;
-            grid-template-columns: 350px 1fr;
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-
-        @media (max-width: 1400px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .sidebar {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #ffffff;
-            border-radius: 8px;
-            padding: 25px;
-            height: fit-content;
-            overflow-y: auto;
-            max-height: 80vh;
-        }
-
-        .tab-navigation {
-            display: flex;
-            gap: 5px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .tab-btn {
-            background: rgba(31, 78, 140, 0.1);
-            color: #1f4e8c;
-            border: 1px solid #1f4e8c;
-            padding: 8px 12px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.9em;
-            transition: all 0.3s;
-            flex: 1;
-            min-width: 70px;
-        }
-
-        .tab-btn:hover {
-            background: rgba(31, 78, 140, 0.2);
-        }
-
-        .tab-btn.active {
-            background: #1f4e8c;
-            color: #ffffff;
-        }
-
-        .section-title {
-            color: #1f4e8c;
-            font-size: 1.2em;
-            margin: 20px 0 15px 0;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #ffffff;
-        }
-
-        .control-group {
-            margin-bottom: 20px;
-        }
-
-        .param-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-            font-size: 0.95em;
-        }
-
-        .param-name {
-            color: #1f4e8c;
-            font-weight: 600;
-        }
-
-        .param-value {
-            color: #1f4e8c;
-            background: rgba(31, 78, 140, 0.1);
-            padding: 2px 8px;
-            border-radius: 3px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.9em;
-        }
-
-        .param-desc {
-            color: #5a6b86;
-            font-size: 0.8em;
-            margin-top: 4px;
-        }
-
-        .equations-box {
-            background: rgba(31, 78, 140, 0.05);
-            border: 1px solid rgba(31, 78, 140, 0.2);
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px 0;
-            font-size: 0.85em;
-            line-height: 1.8;
-        }
-
-        .equation {
-            color: #1f4e8c;
-            margin: 8px 0;
-            font-family: 'Courier New', monospace;
-        }
-
-        .r-naught {
-            background: rgba(31, 78, 140, 0.1);
-            border: 2px solid #1f4e8c;
-            border-radius: 8px;
-            padding: 15px;
-            margin: 20px 0;
-            text-align: center;
-        }
-
-        .r-naught-label {
-            color: #5a6b86;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-        }
-
-        .r-naught-value {
-            color: #1f4e8c;
-            font-size: 2em;
-            font-weight: bold;
-            font-family: 'Courier New', monospace;
-        }
-
-        .r-naught-interpretation {
-            color: #5a6b86;
-            font-size: 0.8em;
-            margin-top: 8px;
-        }
-
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            border-radius: 3px;
-            background: linear-gradient(to right, #1f4e8c, #1f4e8c);
-            background-size: 0 100%;
-            background-repeat: no-repeat;
-            -webkit-appearance: none;
-            appearance: none;
-            cursor: pointer;
-        }
-
-        input[type="range"]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #1f4e8c;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(31, 78, 140, 0.5);
-        }
-
-        input[type="range"]::-moz-range-thumb {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            background: #1f4e8c;
-            cursor: pointer;
-            border: none;
-            box-shadow: 0 0 10px rgba(31, 78, 140, 0.5);
-        }
-
-        input[type="range"] {
-            background: #ffffff;
-        }
-
-        .preset-buttons {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin: 20px 0;
-        }
-
-        .preset-btn {
-            background: rgba(31, 78, 140, 0.1);
-            color: #1f4e8c;
-            border: 1px solid #1f4e8c;
-            padding: 10px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-            transition: all 0.3s;
-        }
-
-        .preset-btn:hover {
-            background: rgba(31, 78, 140, 0.2);
-        }
-
-        .controls-button {
-            background: #1f4e8c;
-            color: #ffffff;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.95em;
-            transition: all 0.3s;
-            margin: 5px 5px 5px 0;
-        }
-
-        .controls-button:hover {
-            background: #1f4e8c;
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(31, 78, 140, 0.3);
-        }
-
-        .controls-button.secondary {
-            background: rgba(31, 78, 140, 0.1);
-            color: #1f4e8c;
-            border: 1px solid #1f4e8c;
-        }
-
-        .controls-button.secondary:hover {
-            background: rgba(31, 78, 140, 0.2);
-        }
-
-        .buttons-row {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin: 20px 0;
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-        }
-
-        @media (max-width: 1200px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .chart-container {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #ffffff;
-            border-radius: 8px;
-            padding: 20px;
-            position: relative;
-        }
-
-        .chart-title {
-            color: #1f4e8c;
-            font-size: 1.15em;
-            margin-bottom: 15px;
-            font-weight: 600;
-        }
-
-        .chart-wrapper {
-            position: relative;
-            height: 400px;
-            width: 100%;
-        }
-
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 25px;
-        }
-
-        .metric-box {
-            background: rgba(255, 255, 255, 0.8);
-            border: 1px solid #ffffff;
-            border-radius: 8px;
-            padding: 15px;
-        }
-
-        .metric-label {
-            color: #5a6b86;
-            font-size: 0.9em;
-            margin-bottom: 8px;
-        }
-
-        .metric-value {
-            color: #1f4e8c;
-            font-size: 1.8em;
-            font-weight: bold;
-        }
-
-        .metric-unit {
-            color: #5a6b86;
-            font-size: 0.8em;
-            margin-top: 4px;
-        }
-
-        .hidden {
-            display: none !important;
-        }
-
-        .intervention-section {
-            background: rgba(31, 78, 140, 0.05);
-            border: 1px solid rgba(31, 78, 140, 0.2);
-            border-radius: 6px;
-            padding: 15px;
-            margin: 20px 0;
-        }
-
-        .intervention-checkbox {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 10px;
-            color: #1f4e8c;
-        }
-
-        input[type="checkbox"] {
-            width: 18px;
-            height: 18px;
-            cursor: pointer;
-            accent-color: #1f4e8c;
-        }
-
-        .herd-immunity-gauge {
-            background: #ffffff;
-            border-radius: 8px;
-            height: 30px;
-            margin: 10px 0;
-            border: 1px solid #ffffff;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .herd-immunity-bar {
-            background: linear-gradient(90deg, #c0392b 0%, #b5842a 50%, #1f4e8c 100%);
-            height: 100%;
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            padding-right: 8px;
-            color: #ffffff;
-            font-size: 0.8em;
-            font-weight: bold;
-        }
-
-        .timeline-scrubber {
-            margin: 20px 0;
-        }
-
-        .timeline-label {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 8px;
-            font-size: 0.9em;
-        }
-
-        .comparison-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
-            margin-top: 25px;
-        }
-
-        @media (max-width: 1000px) {
-            .comparison-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .legend {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            margin: 15px 0;
-            font-size: 0.9em;
-        }
-
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .legend-color {
-            width: 16px;
-            height: 16px;
-            border-radius: 3px;
-        }
-
-        .color-s { background: #1f4e8c; }
-        .color-e { background: #b5842a; }
-        .color-i { background: #c0392b; }
-        .color-r { background: #1f4e8c; }
-        .color-d { background: #5a6b86; }
-        .color-v { background: #1f4e8c; }
-
-        .export-section {
-            margin-top: 20px;
-            padding-top: 20px;
-            border-top: 1px solid #ffffff;
-        }
-
-        .info-box {
-            background: rgba(31, 78, 140, 0.05);
-            border-left: 3px solid #1f4e8c;
-            padding: 12px;
-            margin: 15px 0;
-            border-radius: 4px;
-            font-size: 0.9em;
-            color: #1f4e8c;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 1px solid #ffffff;
-            color: #5a6b86;
-            font-size: 0.9em;
-        }
-
-        .loading {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #1f4e8c;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-    </style>
-<link rel="canonical" href="https://freddricklogan.github.io/epidemic-modeling-dashboard/">
-<meta name="robots" content="index, follow">
-<meta name="author" content="Freddrick Logan">
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="Freddrick Logan">
-<meta property="og:title" content="Epidemic Modeling Dashboard">
-<meta property="og:description" content="Epidemic Modeling Dashboard">
-<meta property="og:url" content="https://freddricklogan.github.io/epidemic-modeling-dashboard/">
-<meta property="og:image" content="https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=1200&h=630&q=80">
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Epidemic Modeling Dashboard">
-<meta name="twitter:description" content="Epidemic Modeling Dashboard">
-<meta name="twitter:image" content="https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=1200&h=630&q=80">
-<script type="application/ld+json">{"@context":"https://schema.org","@type":"SoftwareApplication","name":"Epidemic Modeling Dashboard","description":"Epidemic Modeling Dashboard","url":"https://freddricklogan.github.io/epidemic-modeling-dashboard/","image":"https://images.unsplash.com/photo-1597733336794-12d05021d510?auto=format&fit=crop&w=1200&h=630&q=80","applicationCategory":"WebApplication","operatingSystem":"Any (Web)","author":{"@type":"Person","name":"Freddrick Logan","url":"https://fredlogan.phd"},"offers":{"@type":"Offer","price":"0","priceCurrency":"USD"}}</script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self'; base-uri 'none'; form-action 'none'">
+<title>Epidemic Modeling Dashboard — SIR, SEIR, SIRD, SIRV</title>
+<meta name="description" content="Compartmental epidemic simulation in the browser: SIR, SEIR, SIRD and SIRV integrated with Runge-Kutta 4, with lockdown scenarios, reproduction numbers and a phase portrait. Synthetic teaching model, not a forecast.">
+<meta name="theme-color" content="#0b1220">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230b1220'/%3E%3Cpath d='M4 24 C10 24 10 9 16 9 C22 9 22 24 28 24' fill='none' stroke='%2358A6FF' stroke-width='2.5' stroke-linecap='round'/%3E%3Ccircle cx='16' cy='9' r='2.5' fill='%23f85149'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="src/exec-shell.css">
+<link rel="stylesheet" href="src/app.css">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"
+        integrity="sha384-9MhbyIRcBVQiiC7FSd7T38oJNj2Zh+EfxS7/vjhBi4OOT78NlHSnzM31EZRWR1LZ"
+        crossorigin="anonymous" referrerpolicy="no-referrer" defer></script>
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>Epidemic Modeling Dashboard</h1>
-            <p class="subtitle">Scientific Compartmental Disease Modeling with Interactive Simulation</p>
-        </header>
+<main id="demo-root" class="exec-main">
+  <div class="emd-grid">
 
-        <div class="main-grid">
-            <div class="sidebar">
-                <!-- Model Selection Tabs -->
-                <div>
-                    <div class="section-title">Disease Model</div>
-                    <div class="tab-navigation">
-                        <button class="tab-btn active" data-model="sir">SIR</button>
-                        <button class="tab-btn" data-model="seir">SEIR</button>
-                        <button class="tab-btn" data-model="sird">SIRD</button>
-                        <button class="tab-btn" data-model="sirv">SIRV</button>
-                    </div>
-                </div>
+    <section class="panel sidebar" aria-labelledby="cfg-heading">
+      <h2 id="cfg-heading" class="sr-only">Configuration</h2>
 
-                <!-- Model Equations -->
-                <div>
-                    <div class="section-title">Differential Equations</div>
-                    <div id="equations-display" class="equations-box">
-                        <div class="equation">dS/dt = -β·S·I/N</div>
-                        <div class="equation">dI/dt = β·S·I/N - γ·I</div>
-                        <div class="equation">dR/dt = γ·I</div>
-                    </div>
-                </div>
-
-                <!-- R₀ Display -->
-                <div class="r-naught">
-                    <div class="r-naught-label">Basic Reproduction Number</div>
-                    <div class="r-naught-value" id="r-naught-display">2.50</div>
-                    <div class="r-naught-interpretation" id="r-naught-interp">Growing outbreak</div>
-                </div>
-
-                <!-- Preset Scenarios -->
-                <div>
-                    <div class="section-title">Quick Scenarios</div>
-                    <div class="preset-buttons">
-                        <button class="preset-btn" data-preset="covid19">COVID-19</button>
-                        <button class="preset-btn" data-preset="influenza">Influenza</button>
-                        <button class="preset-btn" data-preset="measles">Measles</button>
-                        <button class="preset-btn" data-preset="ebola">Ebola</button>
-                    </div>
-                </div>
-
-                <!-- Population Parameters -->
-                <div>
-                    <div class="section-title">Population</div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">Population (N)</span>
-                            <span class="param-value" id="val-N">100,000</span>
-                        </div>
-                        <input type="range" id="param-N" min="1000" max="10000000" value="100000" step="1000">
-                        <div class="param-desc">Total population size</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">Initial Infected (I₀)</span>
-                            <span class="param-value" id="val-I0">10</span>
-                        </div>
-                        <input type="range" id="param-I0" min="1" max="1000" value="10" step="1">
-                        <div class="param-desc">Starting infected individuals</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">Duration (days)</span>
-                            <span class="param-value" id="val-days">365</span>
-                        </div>
-                        <input type="range" id="param-days" min="10" max="1000" value="365" step="10">
-                        <div class="param-desc">Simulation length</div>
-                    </div>
-                </div>
-
-                <!-- SIR Parameters -->
-                <div id="params-sir">
-                    <div class="section-title">SIR Parameters</div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">β (transmission)</span>
-                            <span class="param-value" id="val-beta">0.50</span>
-                        </div>
-                        <input type="range" id="param-beta" min="0.01" max="1" value="0.5" step="0.01">
-                        <div class="param-desc">Contact rate × probability</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">γ (recovery)</span>
-                            <span class="param-value" id="val-gamma">0.10</span>
-                        </div>
-                        <input type="range" id="param-gamma" min="0.01" max="1" value="0.1" step="0.01">
-                        <div class="param-desc">1/infectious period (days⁻¹)</div>
-                    </div>
-                </div>
-
-                <!-- SEIR Parameters -->
-                <div id="params-seir" class="hidden">
-                    <div class="section-title">SEIR Parameters</div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">β (transmission)</span>
-                            <span class="param-value" id="val-beta-seir">0.50</span>
-                        </div>
-                        <input type="range" id="param-beta-seir" min="0.01" max="1" value="0.5" step="0.01">
-                        <div class="param-desc">Contact rate × probability</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">σ (incubation)</span>
-                            <span class="param-value" id="val-sigma">0.20</span>
-                        </div>
-                        <input type="range" id="param-sigma" min="0.05" max="1" value="0.2" step="0.01">
-                        <div class="param-desc">1/incubation period (days⁻¹)</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">γ (recovery)</span>
-                            <span class="param-value" id="val-gamma-seir">0.10</span>
-                        </div>
-                        <input type="range" id="param-gamma-seir" min="0.01" max="1" value="0.1" step="0.01">
-                        <div class="param-desc">1/infectious period (days⁻¹)</div>
-                    </div>
-                </div>
-
-                <!-- SIRD Parameters -->
-                <div id="params-sird" class="hidden">
-                    <div class="section-title">SIRD Parameters</div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">β (transmission)</span>
-                            <span class="param-value" id="val-beta-sird">0.50</span>
-                        </div>
-                        <input type="range" id="param-beta-sird" min="0.01" max="1" value="0.5" step="0.01">
-                        <div class="param-desc">Contact rate × probability</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">γ (recovery)</span>
-                            <span class="param-value" id="val-gamma-sird">0.10</span>
-                        </div>
-                        <input type="range" id="param-gamma-sird" min="0.01" max="1" value="0.1" step="0.01">
-                        <div class="param-desc">1/infectious period (days⁻¹)</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">μ (mortality)</span>
-                            <span class="param-value" id="val-mu">0.01</span>
-                        </div>
-                        <input type="range" id="param-mu" min="0" max="0.1" value="0.01" step="0.001">
-                        <div class="param-desc">Case fatality rate (γ×μ)</div>
-                    </div>
-                </div>
-
-                <!-- SIRV Parameters -->
-                <div id="params-sirv" class="hidden">
-                    <div class="section-title">SIRV Parameters</div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">β (transmission)</span>
-                            <span class="param-value" id="val-beta-sirv">0.50</span>
-                        </div>
-                        <input type="range" id="param-beta-sirv" min="0.01" max="1" value="0.5" step="0.01">
-                        <div class="param-desc">Contact rate × probability</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">γ (recovery)</span>
-                            <span class="param-value" id="val-gamma-sirv">0.10</span>
-                        </div>
-                        <input type="range" id="param-gamma-sirv" min="0.01" max="1" value="0.1" step="0.01">
-                        <div class="param-desc">1/infectious period (days⁻¹)</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">ν (vaccination rate)</span>
-                            <span class="param-value" id="val-nu">0.005</span>
-                        </div>
-                        <input type="range" id="param-nu" min="0" max="0.05" value="0.005" step="0.001">
-                        <div class="param-desc">Proportion vaccinated per day</div>
-                    </div>
-
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">Vaccine Efficacy</span>
-                            <span class="param-value" id="val-vax-efficacy">0.95</span>
-                        </div>
-                        <input type="range" id="param-vax-efficacy" min="0" max="1" value="0.95" step="0.01">
-                        <div class="param-desc">Effectiveness (0-1)</div>
-                    </div>
-                </div>
-
-                <!-- Interventions -->
-                <div>
-                    <div class="section-title">Interventions</div>
-                    <div class="intervention-section">
-                        <div class="intervention-checkbox">
-                            <input type="checkbox" id="lockdown-enabled">
-                            <label for="lockdown-enabled">Lockdown</label>
-                        </div>
-                        <div id="lockdown-params" class="hidden">
-                            <div class="control-group">
-                                <div class="param-label">
-                                    <span class="param-name">Start Day</span>
-                                    <span class="param-value" id="val-lockdown-day">30</span>
-                                </div>
-                                <input type="range" id="param-lockdown-day" min="1" max="365" value="30" step="1">
-                            </div>
-                            <div class="control-group">
-                                <div class="param-label">
-                                    <span class="param-name">β Reduction (%)</span>
-                                    <span class="param-value" id="val-lockdown-reduction">80</span>
-                                </div>
-                                <input type="range" id="param-lockdown-reduction" min="0" max="100" value="80" step="5">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Herd Immunity Threshold -->
-                <div>
-                    <div class="section-title">Herd Immunity Threshold</div>
-                    <div class="herd-immunity-gauge">
-                        <div class="herd-immunity-bar" id="herd-immunity-bar" style="width: 40%;">
-                            <span id="herd-immunity-pct">40%</span>
-                        </div>
-                    </div>
-                    <div class="info-box">
-                        Percentage of population that must be immune to stop spread
-                    </div>
-                </div>
-
-                <!-- Simulation Controls -->
-                <div>
-                    <div class="section-title">Simulation</div>
-                    <div class="buttons-row">
-                        <button class="controls-button" id="run-btn">Run</button>
-                        <button class="controls-button secondary" id="pause-btn" disabled>Pause</button>
-                        <button class="controls-button secondary" id="reset-btn">Reset</button>
-                    </div>
-                    <div class="control-group">
-                        <div class="param-label">
-                            <span class="param-name">Animation Speed</span>
-                            <span class="param-value" id="val-speed">1.0x</span>
-                        </div>
-                        <input type="range" id="param-speed" min="0.1" max="5" value="1" step="0.1">
-                    </div>
-                </div>
-
-                <!-- Export -->
-                <div class="export-section">
-                    <button class="controls-button secondary" id="export-btn" style="width: 100%;">Export Data (CSV)</button>
-                </div>
-            </div>
-
-            <!-- Main Content -->
-            <div>
-                <!-- Timeline Scrubber -->
-                <div class="timeline-scrubber">
-                    <div class="timeline-label">
-                        <span>Day <strong id="current-day">0</strong> / <span id="total-days">365</span></span>
-                        <span id="simulation-status">Ready</span>
-                    </div>
-                    <input type="range" id="timeline" min="0" max="365" value="0" style="width: 100%;">
-                </div>
-
-                <!-- Charts Grid -->
-                <div class="content-grid">
-                    <!-- Epidemic Curve -->
-                    <div class="chart-container">
-                        <div class="chart-title">Epidemic Curve (Main)</div>
-                        <div class="legend" id="epidemic-legend"></div>
-                        <div class="chart-wrapper">
-                            <canvas id="epidemic-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Phase Portrait -->
-                    <div class="chart-container">
-                        <div class="chart-title">Phase Portrait (I vs S)</div>
-                        <div class="chart-wrapper">
-                            <canvas id="phase-portrait-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- R-effective Over Time -->
-                    <div class="chart-container">
-                        <div class="chart-title">Effective Reproduction Number (Rₑ)</div>
-                        <div class="chart-wrapper">
-                            <canvas id="r-effective-chart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Comparison Chart (initially hidden) -->
-                    <div class="chart-container hidden" id="comparison-container">
-                        <div class="chart-title">Scenario Comparison</div>
-                        <div class="chart-wrapper">
-                            <canvas id="comparison-chart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Metrics -->
-                <div class="metrics-grid">
-                    <div class="metric-box">
-                        <div class="metric-label">Peak Infection</div>
-                        <div class="metric-value" id="metric-peak-infection">—</div>
-                        <div class="metric-unit">% of population</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-label">Peak Infection Date</div>
-                        <div class="metric-value" id="metric-peak-date">—</div>
-                        <div class="metric-unit">day</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-label">Total Infected</div>
-                        <div class="metric-value" id="metric-total-infected">—</div>
-                        <div class="metric-unit">% of population</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-label">Total Deaths</div>
-                        <div class="metric-value" id="metric-total-deaths">—</div>
-                        <div class="metric-unit">% of population</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-label">Hospital Peak</div>
-                        <div class="metric-value" id="metric-hospital-peak">—</div>
-                        <div class="metric-unit">estimated</div>
-                    </div>
-                    <div class="metric-box">
-                        <div class="metric-label">Duration (50% susceptible)</div>
-                        <div class="metric-value" id="metric-duration">—</div>
-                        <div class="metric-unit">days</div>
-                    </div>
-                </div>
-            </div>
+      <div class="block">
+        <h3 class="section-title" id="model-label">Disease Model</h3>
+        <div class="tab-navigation" role="group" aria-labelledby="model-label">
+          <button type="button" class="tab-btn is-active" data-model="sir" aria-pressed="true">SIR</button>
+          <button type="button" class="tab-btn" data-model="seir" aria-pressed="false">SEIR</button>
+          <button type="button" class="tab-btn" data-model="sird" aria-pressed="false">SIRD</button>
+          <button type="button" class="tab-btn" data-model="sirv" aria-pressed="false">SIRV</button>
         </div>
-
-        <footer>
-            <p>Epidemic Modeling Dashboard • Scientific compartmental disease models with RK4 integration • Data is simulated for educational purposes</p>
-        </footer>
-    </div>
-
-    <script>
-        // ============================================================
-        // Configuration and State Management
-        // ============================================================
-
-        const config = {
-            models: {
-                sir: {
-                    name: 'SIR',
-                    compartments: ['S', 'I', 'R'],
-                    equations: [
-                        'dS/dt = -β·S·I/N',
-                        'dI/dt = β·S·I/N - γ·I',
-                        'dR/dt = γ·I'
-                    ]
-                },
-                seir: {
-                    name: 'SEIR',
-                    compartments: ['S', 'E', 'I', 'R'],
-                    equations: [
-                        'dS/dt = -β·S·I/N',
-                        'dE/dt = β·S·I/N - σ·E',
-                        'dI/dt = σ·E - γ·I',
-                        'dR/dt = γ·I'
-                    ]
-                },
-                sird: {
-                    name: 'SIRD',
-                    compartments: ['S', 'I', 'R', 'D'],
-                    equations: [
-                        'dS/dt = -β·S·I/N',
-                        'dI/dt = β·S·I/N - γ·I',
-                        'dR/dt = γ·I·(1-μ)',
-                        'dD/dt = γ·I·μ'
-                    ]
-                },
-                sirv: {
-                    name: 'SIRV',
-                    compartments: ['S', 'I', 'R', 'V'],
-                    equations: [
-                        'dS/dt = -β·S·I/N - ν·S',
-                        'dI/dt = β·S·(1-ε)·I/N - γ·I',
-                        'dR/dt = γ·I',
-                        'dV/dt = ν·ε·S'
-                    ]
-                }
-            },
-            presets: {
-                covid19: {
-                    name: 'COVID-19',
-                    N: 1000000,
-                    I0: 10,
-                    beta: 0.5,
-                    gamma: 0.0714, // ~14 day infectious period
-                    sigma: 0.2, // ~5 day incubation
-                    mu: 0.01,
-                    nu: 0.005,
-                    vax_efficacy: 0.9
-                },
-                influenza: {
-                    name: 'Influenza',
-                    N: 1000000,
-                    I0: 5,
-                    beta: 0.5,
-                    gamma: 0.33, // ~3 day infectious period
-                    sigma: 0.5, // ~2 day incubation
-                    mu: 0.001,
-                    nu: 0.01,
-                    vax_efficacy: 0.6
-                },
-                measles: {
-                    name: 'Measles',
-                    N: 1000000,
-                    I0: 2,
-                    beta: 0.9,
-                    gamma: 0.125, // ~8 day infectious period
-                    sigma: 0.2, // ~5 day incubation
-                    mu: 0.002,
-                    nu: 0.02,
-                    vax_efficacy: 0.97
-                },
-                ebola: {
-                    name: 'Ebola',
-                    N: 100000,
-                    I0: 1,
-                    beta: 0.3,
-                    gamma: 0.1, // ~10 day infectious period
-                    sigma: 0.14, // ~7 day incubation
-                    mu: 0.5,
-                    nu: 0,
-                    vax_efficacy: 0.5
-                }
-            },
-            colors: {
-                S: '#1f4e8c',
-                E: '#b5842a',
-                I: '#c0392b',
-                R: '#1f4e8c',
-                D: '#5a6b86',
-                V: '#1f4e8c'
-            }
-        };
-
-        let state = {
-            model: 'sir',
-            running: false,
-            currentDay: 0,
-            data: null,
-            simulationData: [],
-            charts: {},
-            animationFrameId: null,
-            startTime: null
-        };
-
-        // ============================================================
-        // Numerical Integration: RK4
-        // ============================================================
-
-        function rk4Step(y, derivatives, params, dt) {
-            const n = y.length;
-            const k1 = derivatives(y, params);
-
-            const y2 = y.map((val, i) => val + k1[i] * dt / 2);
-            const k2 = derivatives(y2, params);
-
-            const y3 = y.map((val, i) => val + k2[i] * dt / 2);
-            const k3 = derivatives(y3, params);
-
-            const y4 = y.map((val, i) => val + k3[i] * dt);
-            const k4 = derivatives(y4, params);
-
-            return y.map((val, i) => val + (k1[i] + 2 * k2[i] + 2 * k3[i] + k4[i]) * dt / 6);
-        }
-
-        // ============================================================
-        // Model Definitions
-        // ============================================================
-
-        function getSIRDerivatives(y, params) {
-            const [S, I, R] = y;
-            const { N, beta, gamma, lockdown } = params;
-
-            let beta_effective = beta;
-            if (lockdown && lockdown.active) {
-                beta_effective = beta * (1 - lockdown.reduction / 100);
-            }
-
-            const dS = -beta_effective * S * I / N;
-            const dI = beta_effective * S * I / N - gamma * I;
-            const dR = gamma * I;
-
-            return [dS, dI, dR];
-        }
-
-        function getSEIRDerivatives(y, params) {
-            const [S, E, I, R] = y;
-            const { N, beta, sigma, gamma, lockdown } = params;
-
-            let beta_effective = beta;
-            if (lockdown && lockdown.active) {
-                beta_effective = beta * (1 - lockdown.reduction / 100);
-            }
-
-            const dS = -beta_effective * S * I / N;
-            const dE = beta_effective * S * I / N - sigma * E;
-            const dI = sigma * E - gamma * I;
-            const dR = gamma * I;
-
-            return [dS, dE, dI, dR];
-        }
-
-        function getSIRDDerivatives(y, params) {
-            const [S, I, R, D] = y;
-            const { N, beta, gamma, mu, lockdown } = params;
-
-            let beta_effective = beta;
-            if (lockdown && lockdown.active) {
-                beta_effective = beta * (1 - lockdown.reduction / 100);
-            }
-
-            const dS = -beta_effective * S * I / N;
-            const dI = beta_effective * S * I / N - gamma * I;
-            const dR = gamma * I * (1 - mu);
-            const dD = gamma * I * mu;
-
-            return [dS, dI, dR, dD];
-        }
-
-        function getSIRVDerivatives(y, params) {
-            const [S, I, R, V] = y;
-            const { N, beta, gamma, nu, vax_efficacy, lockdown } = params;
-
-            let beta_effective = beta;
-            if (lockdown && lockdown.active) {
-                beta_effective = beta * (1 - lockdown.reduction / 100);
-            }
-
-            const dS = -beta_effective * S * I / N - nu * S;
-            const dI = beta_effective * S * (1 - vax_efficacy) * I / N - gamma * I;
-            const dR = gamma * I;
-            const dV = nu * vax_efficacy * S;
-
-            return [dS, dI, dR, dV];
-        }
-
-        // ============================================================
-        // Simulation Engine
-        // ============================================================
-
-        function runSimulation(params) {
-            const { model, days, dt = 1 } = params;
-            let y, derivatives, initialConditions;
-
-            // Setup initial conditions
-            const N = parseFloat(document.getElementById('param-N').value);
-            const I0 = parseFloat(document.getElementById('param-I0').value);
-
-            if (model === 'sir') {
-                derivatives = getSIRDerivatives;
-                initialConditions = [N - I0, I0, 0];
-            } else if (model === 'seir') {
-                derivatives = getSEIRDerivatives;
-                const E0 = I0 * 0.5;
-                initialConditions = [N - I0 - E0, E0, I0, 0];
-            } else if (model === 'sird') {
-                derivatives = getSIRDDerivatives;
-                initialConditions = [N - I0, I0, 0, 0];
-            } else if (model === 'sirv') {
-                derivatives = getSIRVDerivatives;
-                initialConditions = [N - I0, I0, 0, 0];
-            }
-
-            y = [...initialConditions];
-
-            const simData = [];
-            const lockdownParams = {
-                enabled: document.getElementById('lockdown-enabled').checked,
-                day: parseInt(document.getElementById('param-lockdown-day').value),
-                reduction: parseFloat(document.getElementById('param-lockdown-reduction').value)
-            };
-
-            for (let day = 0; day <= days; day++) {
-                const lockdown = lockdownParams.enabled && day >= lockdownParams.day
-                    ? { active: true, reduction: lockdownParams.reduction }
-                    : { active: false };
-
-                const modelParams = { N, lockdown };
-
-                if (model === 'sir') {
-                    modelParams.beta = parseFloat(document.getElementById('param-beta').value);
-                    modelParams.gamma = parseFloat(document.getElementById('param-gamma').value);
-                } else if (model === 'seir') {
-                    modelParams.beta = parseFloat(document.getElementById('param-beta-seir').value);
-                    modelParams.sigma = parseFloat(document.getElementById('param-sigma').value);
-                    modelParams.gamma = parseFloat(document.getElementById('param-gamma-seir').value);
-                } else if (model === 'sird') {
-                    modelParams.beta = parseFloat(document.getElementById('param-beta-sird').value);
-                    modelParams.gamma = parseFloat(document.getElementById('param-gamma-sird').value);
-                    modelParams.mu = parseFloat(document.getElementById('param-mu').value);
-                } else if (model === 'sirv') {
-                    modelParams.beta = parseFloat(document.getElementById('param-beta-sirv').value);
-                    modelParams.gamma = parseFloat(document.getElementById('param-gamma-sirv').value);
-                    modelParams.nu = parseFloat(document.getElementById('param-nu').value);
-                    modelParams.vax_efficacy = parseFloat(document.getElementById('param-vax-efficacy').value);
-                }
-
-                const dataPoint = { day, values: {} };
-                const compartments = config.models[model].compartments;
-                compartments.forEach((comp, i) => {
-                    dataPoint.values[comp] = y[i];
-                });
-
-                // Calculate Rₑ
-                if (model === 'sir') {
-                    const S = y[0];
-                    const beta = modelParams.beta;
-                    const gamma = modelParams.gamma;
-                    dataPoint.values['Re'] = (beta / gamma) * (S / N);
-                } else if (model === 'seir') {
-                    const S = y[0];
-                    const beta = modelParams.beta;
-                    const gamma = modelParams.gamma;
-                    dataPoint.values['Re'] = (beta / gamma) * (S / N);
-                }
-
-                simData.push(dataPoint);
-
-                if (day < days) {
-                    y = rk4Step(y, derivatives, modelParams, dt);
-                    // Ensure non-negative values
-                    y = y.map(v => Math.max(0, v));
-                }
-            }
-
-            return simData;
-        }
-
-        // ============================================================
-        // Chart Management
-        // ============================================================
-
-        function updateCharts() {
-            if (!state.data || state.data.length === 0) return;
-
-            const N = parseFloat(document.getElementById('param-N').value);
-            const compartments = config.models[state.model].compartments;
-
-            // Build labels and datasets
-            const labels = state.data.map(d => d.day);
-            const datasets = [];
-
-            for (const comp of compartments) {
-                datasets.push({
-                    label: comp,
-                    data: state.data.map(d => (d.values[comp] / N) * 100),
-                    borderColor: config.colors[comp],
-                    backgroundColor: config.colors[comp] + '20',
-                    borderWidth: 2,
-                    tension: 0.4,
-                    fill: true
-                });
-            }
-
-            // Update epidemic curve
-            if (state.charts.epidemic) {
-                state.charts.epidemic.data.labels = labels;
-                state.charts.epidemic.data.datasets = datasets;
-                state.charts.epidemic.update('none');
-            } else {
-                const ctx = document.getElementById('epidemic-chart').getContext('2d');
-                state.charts.epidemic = new Chart(ctx, {
-                    type: 'line',
-                    data: { labels, datasets },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#5a6b86' }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                max: 100,
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            },
-                            x: {
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            }
-                        }
-                    }
-                });
-            }
-
-            // Update legend
-            updateLegend();
-
-            // Update phase portrait
-            updatePhasePortrait();
-
-            // Update R effective
-            updateREffective();
-
-            // Update metrics
-            updateMetrics();
-        }
-
-        function updateLegend() {
-            const legendDiv = document.getElementById('epidemic-legend');
-            legendDiv.innerHTML = '';
-
-            const compartments = config.models[state.model].compartments;
-            for (const comp of compartments) {
-                const item = document.createElement('div');
-                item.className = 'legend-item';
-                item.innerHTML = `
-                    <div class="legend-color" style="background: ${config.colors[comp]}"></div>
-                    <span>${comp}</span>
-                `;
-                legendDiv.appendChild(item);
-            }
-        }
-
-        function updatePhasePortrait() {
-            if (!state.data) return;
-
-            const N = parseFloat(document.getElementById('param-N').value);
-
-            // Extract S and I
-            const dataset = {
-                label: 'Epidemic Trajectory',
-                data: state.data.map((d, idx) => ({
-                    x: (d.values['S'] / N) * 100,
-                    y: (d.values['I'] / N) * 100
-                })),
-                borderColor: '#1f4e8c',
-                backgroundColor: '#1f4e8c20',
-                borderWidth: 2,
-                pointRadius: 0,
-                tension: 0.4,
-                fill: false
-            };
-
-            if (state.charts.phasePortrait) {
-                state.charts.phasePortrait.data.datasets = [dataset];
-                state.charts.phasePortrait.update('none');
-            } else {
-                const ctx = document.getElementById('phase-portrait-chart').getContext('2d');
-                state.charts.phasePortrait = new Chart(ctx, {
-                    type: 'scatter',
-                    data: { datasets: [dataset] },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#5a6b86' }
-                            }
-                        },
-                        scales: {
-                            x: {
-                                title: { display: true, text: 'Susceptible (%)', color: '#5a6b86' },
-                                max: 100,
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            },
-                            y: {
-                                title: { display: true, text: 'Infected (%)', color: '#5a6b86' },
-                                max: 100,
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function updateREffective() {
-            if (!state.data) return;
-
-            const dataset = {
-                label: 'Rₑ',
-                data: state.data.map(d => d.values['Re'] || 0),
-                borderColor: '#b5842a',
-                backgroundColor: '#b5842a20',
-                borderWidth: 2,
-                tension: 0.4,
-                fill: true
-            };
-
-            if (state.charts.rEffective) {
-                state.charts.rEffective.data.labels = state.data.map(d => d.day);
-                state.charts.rEffective.data.datasets = [dataset];
-                state.charts.rEffective.update('none');
-            } else {
-                const ctx = document.getElementById('r-effective-chart').getContext('2d');
-                state.charts.rEffective = new Chart(ctx, {
-                    type: 'line',
-                    data: {
-                        labels: state.data.map(d => d.day),
-                        datasets: [dataset]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: {
-                                labels: { color: '#5a6b86' }
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            },
-                            x: {
-                                ticks: { color: '#5a6b86' },
-                                grid: { color: '#ffffff' }
-                            }
-                        }
-                    }
-                });
-            }
-        }
-
-        function updateMetrics() {
-            if (!state.data || state.data.length === 0) return;
-
-            const N = parseFloat(document.getElementById('param-N').value);
-
-            // Find peak infection
-            let maxInfected = 0;
-            let peakDay = 0;
-            for (const d of state.data) {
-                const infected = (d.values['I'] / N) * 100;
-                if (infected > maxInfected) {
-                    maxInfected = infected;
-                    peakDay = d.day;
-                }
-            }
-
-            // Total infected = final R + final I
-            const final = state.data[state.data.length - 1];
-            const totalInfected = ((final.values['R'] + final.values['I']) / N) * 100;
-
-            // Total deaths (if SIRD)
-            const totalDeaths = final.values['D'] ? ((final.values['D'] / N) * 100) : 0;
-
-            // Hospital peak (estimate as 5% of infected)
-            const hospitalPeak = (maxInfected * 0.05).toFixed(1);
-
-            // Find when S drops below 50%
-            let durationDay = state.data.length - 1;
-            for (const d of state.data) {
-                if ((d.values['S'] / N) < 0.5) {
-                    durationDay = d.day;
-                    break;
-                }
-            }
-
-            document.getElementById('metric-peak-infection').textContent = maxInfected.toFixed(1);
-            document.getElementById('metric-peak-date').textContent = peakDay;
-            document.getElementById('metric-total-infected').textContent = totalInfected.toFixed(1);
-            document.getElementById('metric-total-deaths').textContent = totalDeaths.toFixed(2);
-            document.getElementById('metric-hospital-peak').textContent = hospitalPeak;
-            document.getElementById('metric-duration').textContent = durationDay;
-        }
-
-        // ============================================================
-        // Event Handlers
-        // ============================================================
-
-        // Model switching
-        document.querySelectorAll('.tab-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-
-                state.model = btn.dataset.model;
-
-                // Update visible parameter sections
-                document.querySelectorAll('[id^="params-"]').forEach(el => el.classList.add('hidden'));
-                document.getElementById(`params-${state.model}`).classList.remove('hidden');
-
-                // Update equations display
-                updateEquationsDisplay();
-                updateRNaught();
-
-                // Reset and run
-                resetSimulation();
-                runSimulation();
-            });
-        });
-
-        function updateEquationsDisplay() {
-            const eqs = config.models[state.model].equations;
-            const eqDisplay = document.getElementById('equations-display');
-            eqDisplay.innerHTML = eqs.map(eq => `<div class="equation">${eq}</div>`).join('');
-        }
-
-        // Parameter sliders
-        function setupParameterListeners() {
-            const params = [
-                'N', 'I0', 'days', 'beta', 'gamma', 'sigma', 'mu', 'nu',
-                'beta-seir', 'gamma-seir', 'beta-sird', 'gamma-sird',
-                'beta-sirv', 'gamma-sirv', 'vax-efficacy',
-                'lockdown-day', 'lockdown-reduction', 'speed'
-            ];
-
-            params.forEach(param => {
-                const elem = document.getElementById(`param-${param}`);
-                if (elem) {
-                    elem.addEventListener('input', (e) => {
-                        const id = e.target.id.replace('param-', '');
-                        updateParameterDisplay(id, e.target.value);
-
-                        if (param === 'days') {
-                            document.getElementById('timeline').max = e.target.value;
-                            document.getElementById('total-days').textContent = e.target.value;
-                        }
-
-                        updateRNaught();
-
-                        if (state.running) {
-                            // Interrupt animation and re-run
-                            cancelAnimationFrame(state.animationFrameId);
-                            state.running = false;
-                            runSimulation();
-                        }
-                    });
-                }
-            });
-        }
-
-        function updateParameterDisplay(param, value) {
-            const displayElem = document.getElementById(`val-${param}`);
-            if (displayElem) {
-                if (param === 'N') {
-                    displayElem.textContent = formatNumber(parseInt(value));
-                } else if (param === 'days') {
-                    displayElem.textContent = value;
-                } else if (param === 'speed') {
-                    displayElem.textContent = parseFloat(value).toFixed(1) + 'x';
-                } else if (param === 'lockdown-reduction') {
-                    displayElem.textContent = value + '%';
-                } else {
-                    displayElem.textContent = parseFloat(value).toFixed(3);
-                }
-            }
-        }
-
-        function formatNumber(num) {
-            return num.toLocaleString('en-US');
-        }
-
-        function updateRNaught() {
-            let R0 = 0;
-
-            if (state.model === 'sir') {
-                const beta = parseFloat(document.getElementById('param-beta').value);
-                const gamma = parseFloat(document.getElementById('param-gamma').value);
-                R0 = beta / gamma;
-            } else if (state.model === 'seir') {
-                const beta = parseFloat(document.getElementById('param-beta-seir').value);
-                const gamma = parseFloat(document.getElementById('param-gamma-seir').value);
-                R0 = beta / gamma;
-            } else if (state.model === 'sird') {
-                const beta = parseFloat(document.getElementById('param-beta-sird').value);
-                const gamma = parseFloat(document.getElementById('param-gamma-sird').value);
-                R0 = beta / gamma;
-            } else if (state.model === 'sirv') {
-                const beta = parseFloat(document.getElementById('param-beta-sirv').value);
-                const gamma = parseFloat(document.getElementById('param-gamma-sirv').value);
-                const efficacy = parseFloat(document.getElementById('param-vax-efficacy').value);
-                R0 = (beta / gamma) * (1 - efficacy);
-            }
-
-            document.getElementById('r-naught-display').textContent = R0.toFixed(2);
-
-            let interp = 'Growing outbreak';
-            if (R0 < 0.5) interp = 'Outbreak dying';
-            else if (R0 < 1) interp = 'Controlled spread';
-            else if (R0 < 2) interp = 'Moderate spread';
-            else if (R0 < 5) interp = 'Rapid spread';
-            else interp = 'Explosive outbreak';
-
-            document.getElementById('r-naught-interp').textContent = interp;
-
-            // Update herd immunity threshold
-            const hitThreshold = Math.max(0, Math.min(100, (1 - 1 / Math.max(1, R0)) * 100));
-            document.getElementById('herd-immunity-bar').style.width = hitThreshold + '%';
-            document.getElementById('herd-immunity-pct').textContent = hitThreshold.toFixed(0) + '%';
-        }
-
-        // Preset scenarios
-        document.querySelectorAll('.preset-btn').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const preset = config.presets[btn.dataset.preset];
-
-                document.getElementById('param-N').value = preset.N;
-                document.getElementById('param-I0').value = preset.I0;
-                document.getElementById('param-beta').value = preset.beta;
-                document.getElementById('param-gamma').value = preset.gamma;
-                document.getElementById('param-beta-seir').value = preset.beta;
-                document.getElementById('param-gamma-seir').value = preset.gamma;
-                document.getElementById('param-sigma').value = preset.sigma;
-                document.getElementById('param-beta-sird').value = preset.beta;
-                document.getElementById('param-gamma-sird').value = preset.gamma;
-                document.getElementById('param-mu').value = preset.mu;
-                document.getElementById('param-beta-sirv').value = preset.beta;
-                document.getElementById('param-gamma-sirv').value = preset.gamma;
-                document.getElementById('param-nu').value = preset.nu;
-                document.getElementById('param-vax-efficacy').value = preset.vax_efficacy;
-
-                // Update displays
-                updateParameterDisplay('N', preset.N);
-                updateParameterDisplay('I0', preset.I0);
-                updateParameterDisplay('beta', preset.beta);
-                updateParameterDisplay('gamma', preset.gamma);
-                updateParameterDisplay('sigma', preset.sigma);
-                updateParameterDisplay('mu', preset.mu);
-                updateParameterDisplay('nu', preset.nu);
-                updateParameterDisplay('vax-efficacy', preset.vax_efficacy);
-
-                updateRNaught();
-                runSimulation();
-            });
-        });
-
-        // Lockdown toggle
-        document.getElementById('lockdown-enabled').addEventListener('change', (e) => {
-            const params = document.getElementById('lockdown-params');
-            if (e.target.checked) {
-                params.classList.remove('hidden');
-            } else {
-                params.classList.add('hidden');
-            }
-        });
-
-        // Timeline scrubber
-        document.getElementById('timeline').addEventListener('input', (e) => {
-            const day = parseInt(e.target.value);
-            state.currentDay = day;
-            document.getElementById('current-day').textContent = day;
-        });
-
-        // Simulation controls
-        document.getElementById('run-btn').addEventListener('click', () => {
-            if (!state.running) {
-                state.running = true;
-                document.getElementById('run-btn').disabled = true;
-                document.getElementById('pause-btn').disabled = false;
-                document.getElementById('simulation-status').textContent = 'Running...';
-                animateSimulation();
-            }
-        });
-
-        document.getElementById('pause-btn').addEventListener('click', () => {
-            if (state.running) {
-                state.running = false;
-                cancelAnimationFrame(state.animationFrameId);
-                document.getElementById('run-btn').disabled = false;
-                document.getElementById('pause-btn').disabled = true;
-                document.getElementById('simulation-status').textContent = 'Paused';
-            }
-        });
-
-        document.getElementById('reset-btn').addEventListener('click', () => {
-            resetSimulation();
-        });
-
-        function resetSimulation() {
-            state.running = false;
-            state.currentDay = 0;
-            document.getElementById('timeline').value = 0;
-            document.getElementById('current-day').textContent = 0;
-            document.getElementById('run-btn').disabled = false;
-            document.getElementById('pause-btn').disabled = true;
-            document.getElementById('simulation-status').textContent = 'Ready';
-            runSimulation();
-        }
-
-        // Export CSV
-        document.getElementById('export-btn').addEventListener('click', () => {
-            if (!state.data || state.data.length === 0) {
-                alert('No simulation data to export');
-                return;
-            }
-
-            const N = parseFloat(document.getElementById('param-N').value);
-            const compartments = config.models[state.model].compartments;
-
-            let csv = 'Day,' + compartments.join(',') + '\n';
-            for (const d of state.data) {
-                const row = [d.day];
-                for (const comp of compartments) {
-                    row.push(((d.values[comp] / N) * 100).toFixed(2));
-                }
-                csv += row.join(',') + '\n';
-            }
-
-            const blob = new Blob([csv], { type: 'text/csv' });
-            const url = window.URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `epidemic-${state.model}-${new Date().toISOString().split('T')[0]}.csv`;
-            a.click();
-            window.URL.revokeObjectURL(url);
-        });
-
-        // Run simulation
-        function runSimulation() {
-            const days = parseInt(document.getElementById('param-days').value);
-            state.data = runSimulation({ model: state.model, days });
-            updateCharts();
-        }
-
-        function animateSimulation() {
-            const speed = parseFloat(document.getElementById('param-speed').value);
-            const days = parseInt(document.getElementById('param-days').value);
-
-            if (!state.startTime) {
-                state.startTime = performance.now();
-            }
-
-            const animate = (currentTime) => {
-                if (!state.running) return;
-
-                const elapsed = (currentTime - state.startTime) / 1000;
-                state.currentDay = Math.min(days, Math.floor(elapsed * speed));
-
-                document.getElementById('timeline').value = state.currentDay;
-                document.getElementById('current-day').textContent = state.currentDay;
-
-                if (state.currentDay >= days) {
-                    state.running = false;
-                    state.startTime = null;
-                    document.getElementById('run-btn').disabled = false;
-                    document.getElementById('pause-btn').disabled = true;
-                    document.getElementById('simulation-status').textContent = 'Complete';
-                } else {
-                    state.animationFrameId = requestAnimationFrame(animate);
-                }
-            };
-
-            state.animationFrameId = requestAnimationFrame(animate);
-        }
-
-        // ============================================================
-        // Initialization
-        // ============================================================
-
-        document.addEventListener('DOMContentLoaded', () => {
-            setupParameterListeners();
-            updateEquationsDisplay();
-            updateRNaught();
-            runSimulation();
-        });
-    </script>
-<footer id="app-copyright" style="text-align:center;padding:30px 20px;margin-top:48px;border-top:1px solid rgba(31,78,140,.18);background:#ffffff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;color:#5a6b86;font-size:.86rem"><div style="font-weight:700;font-size:1rem"><a href="https://github.com/Freddricklogan" style="color:#14263f;text-decoration:none">Freddrick Logan</a> <span style="color:#5a6b86;font-weight:400">&mdash; Technologist &amp; Education</span></div><div style="margin-top:8px">&copy; 2026 Freddrick Logan. All rights reserved.</div></footer>
-<a id="view-src" href="https://github.com/Freddricklogan/epidemic-modeling-dashboard" target="_blank" rel="noopener" title="View source on GitHub" style="position:fixed;right:14px;bottom:14px;z-index:99999;font:600 12px/1 -apple-system,system-ui,sans-serif;color:#ffffff;background:#1f4e8c;border-radius:999px;padding:10px 15px;text-decoration:none;box-shadow:0 3px 16px rgba(255, 255, 255,.45)">&#9654; View Source</a>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title">Differential Equations</h3>
+        <div id="equations-display" class="equations-box" aria-live="polite"></div>
+      </div>
+
+      <div class="block r-naught">
+        <div class="r-naught-label">Basic Reproduction Number (R<sub>0</sub>)</div>
+        <div class="r-naught-value" id="r-naught-display" aria-live="polite">3.00</div>
+        <div class="r-naught-interpretation" id="r-naught-interp">Rapid spread</div>
+        <div class="hit-label">Herd-immunity threshold <span id="herd-immunity-pct">67%</span></div>
+        <div class="hit-track"><div class="hit-bar" id="herd-immunity-bar"></div></div>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title" id="preset-label">Quick Scenarios</h3>
+        <div class="preset-buttons" role="group" aria-labelledby="preset-label">
+          <button type="button" class="preset-btn" data-preset="covid19">COVID-19</button>
+          <button type="button" class="preset-btn" data-preset="influenza">Influenza</button>
+          <button type="button" class="preset-btn" data-preset="measles">Measles</button>
+          <button type="button" class="preset-btn" data-preset="ebola">Ebola</button>
+        </div>
+        <p class="preset-note" id="preset-note">Illustrative textbook parameters for teaching — not fitted estimates.</p>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title">Population</h3>
+        <div class="control-group">
+          <label for="param-N">Population (N) <span class="param-value" id="val-N">1.00M</span></label>
+          <input type="range" id="param-N" min="1000" max="10000000" value="1000000" step="1000" aria-describedby="val-N">
+        </div>
+        <div class="control-group">
+          <label for="param-I0">Initial infected (I₀) <span class="param-value" id="val-I0">10</span></label>
+          <input type="range" id="param-I0" min="1" max="1000" value="10" step="1" aria-describedby="val-I0">
+        </div>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title">Disease Parameters</h3>
+        <div class="control-group">
+          <label for="param-beta">Transmission rate (β) <span class="param-value" id="val-beta">0.300</span></label>
+          <input type="range" id="param-beta" min="0.01" max="1" value="0.3" step="0.01" aria-describedby="val-beta">
+        </div>
+        <div class="control-group">
+          <label for="param-gamma">Recovery rate (γ) <span class="param-value" id="val-gamma">0.100</span></label>
+          <input type="range" id="param-gamma" min="0.01" max="1" value="0.1" step="0.01" aria-describedby="val-gamma">
+        </div>
+        <div class="control-group model-only" data-for="seir" hidden>
+          <label for="param-sigma">Incubation rate (σ) <span class="param-value" id="val-sigma">0.200</span></label>
+          <input type="range" id="param-sigma" min="0.01" max="1" value="0.2" step="0.01" aria-describedby="val-sigma">
+        </div>
+        <div class="control-group model-only" data-for="sird" hidden>
+          <label for="param-mu">Case-fatality ratio (μ) <span class="param-value" id="val-mu">0.020</span></label>
+          <input type="range" id="param-mu" min="0" max="1" value="0.02" step="0.005" aria-describedby="val-mu">
+        </div>
+        <div class="control-group model-only" data-for="sirv" hidden>
+          <label for="param-nu">Vaccination rate (ν) <span class="param-value" id="val-nu">0.010</span></label>
+          <input type="range" id="param-nu" min="0" max="0.1" value="0.01" step="0.001" aria-describedby="val-nu">
+        </div>
+        <div class="control-group model-only" data-for="sirv" hidden>
+          <label for="param-vax-efficacy">Vaccine efficacy <span class="param-value" id="val-vax-efficacy">0.90</span></label>
+          <input type="range" id="param-vax-efficacy" min="0" max="1" value="0.9" step="0.01" aria-describedby="val-vax-efficacy">
+        </div>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title">Intervention</h3>
+        <div class="control-group switch-row">
+          <input type="checkbox" id="lockdown-enabled">
+          <label for="lockdown-enabled">Apply a lockdown</label>
+        </div>
+        <div id="lockdown-params" hidden>
+          <div class="control-group">
+            <label for="param-lockdown-day">Start day <span class="param-value" id="val-lockdown-day">30</span></label>
+            <input type="range" id="param-lockdown-day" min="0" max="365" value="30" step="1" aria-describedby="val-lockdown-day">
+          </div>
+          <div class="control-group">
+            <label for="param-lockdown-reduction">Contact reduction <span class="param-value" id="val-lockdown-reduction">50%</span></label>
+            <input type="range" id="param-lockdown-reduction" min="0" max="95" value="50" step="1" aria-describedby="val-lockdown-reduction">
+          </div>
+        </div>
+      </div>
+
+      <div class="block">
+        <h3 class="section-title">Simulation</h3>
+        <div class="control-group">
+          <label for="param-days">Duration (days) <span class="param-value" id="val-days">180</span></label>
+          <input type="range" id="param-days" min="30" max="730" value="180" step="10" aria-describedby="val-days">
+        </div>
+        <div class="control-group">
+          <label for="param-speed">Playback speed <span class="param-value" id="val-speed">30</span></label>
+          <input type="range" id="param-speed" min="1" max="120" value="30" step="1" aria-describedby="val-speed">
+        </div>
+        <div class="button-group">
+          <button type="button" id="run-btn" class="btn btn--primary">Run</button>
+          <button type="button" id="pause-btn" class="btn">Pause</button>
+          <button type="button" id="reset-btn" class="btn btn--danger">Reset</button>
+        </div>
+        <div class="button-group">
+          <button type="button" id="export-btn" class="btn">Export CSV</button>
+        </div>
+        <div class="training-status">
+          <span class="status-indicator is-idle" id="status-indicator" aria-hidden="true"></span>
+          <span class="status-text" id="simulation-status" role="status" aria-live="polite">Ready</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="center-panel" aria-labelledby="viz-heading">
+      <h2 id="viz-heading" class="sr-only">Simulation output</h2>
+
+      <div class="visualization-container">
+        <div class="viz-head">
+          <h3>Epidemic Curve</h3>
+          <div id="epidemic-legend" class="legend"></div>
+        </div>
+        <canvas id="epidemic-chart" width="760" height="300" role="img"
+                aria-label="Compartment sizes over time"></canvas>
+        <p id="chart-fallback" class="chart-fallback" hidden>
+          Chart library unavailable — the metrics below are still computed.
+        </p>
+        <div class="timeline-row">
+          <label for="timeline" class="sr-only">Scrub the timeline</label>
+          <input type="range" id="timeline" min="0" max="180" value="180" step="1">
+          <span class="timeline-readout">Day <span id="current-day">180</span> / <span id="total-days">180</span></span>
+        </div>
+      </div>
+
+      <div class="metrics-grid">
+        <div class="metric"><div class="metric-value" id="metric-peak-infection" aria-live="polite">—</div><div class="metric-label">Peak prevalence</div></div>
+        <div class="metric"><div class="metric-value" id="metric-peak-date" aria-live="polite">—</div><div class="metric-label">Peak day</div></div>
+        <div class="metric"><div class="metric-value" id="metric-total-infected" aria-live="polite">—</div><div class="metric-label">Attack rate</div></div>
+        <div class="metric"><div class="metric-value" id="metric-total-deaths" aria-live="polite">—</div><div class="metric-label">Deaths</div></div>
+        <div class="metric"><div class="metric-value" id="metric-hospital-peak" aria-live="polite">—</div><div class="metric-label">Peak beds <span class="assumption">(assumes 5%)</span></div></div>
+        <div class="metric"><div class="metric-value" id="metric-duration" aria-live="polite">—</div><div class="metric-label">Day S &lt; 50%</div></div>
+      </div>
+
+      <div class="chart-pair">
+        <div class="visualization-container">
+          <h3>Effective Reproduction Number (R<sub>e</sub>)</h3>
+          <canvas id="r-effective-chart" width="370" height="220" role="img"
+                  aria-label="Effective reproduction number over time"></canvas>
+        </div>
+        <div class="visualization-container">
+          <h3>Phase Portrait (S vs I)</h3>
+          <canvas id="phase-portrait-chart" width="370" height="220" role="img"
+                  aria-label="Susceptible against infectious trajectory"></canvas>
+        </div>
+      </div>
+
+      <div class="visualization-container" id="comparison-container">
+        <h3>Model Comparison — infectious curve under all four models</h3>
+        <canvas id="comparison-chart" width="760" height="240" role="img"
+                aria-label="Infectious compartment compared across SIR, SEIR, SIRD and SIRV"></canvas>
+      </div>
+    </section>
+
+  </div>
+</main>
+<script type="module" src="src/main.js"></script>
 </body>
 </html>
