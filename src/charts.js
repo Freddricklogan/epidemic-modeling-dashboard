@@ -1,8 +1,9 @@
+import { tokens } from './exec-shell.js';
 /** Chart.js wiring. Every function here touches the DOM; none of them compute. */
 
-export const COLOURS = { S: '#58A6FF', E: '#d29922', I: '#f85149', R: '#3fb950', D: '#8b98b0', V: '#d2a8ff' };
+export const COLOURS = { S: tokens().accent, E: tokens().warn, I: tokens().danger, R: tokens().ok, D: tokens().muted, V: tokens().series[4] };
 const GRID = 'rgba(34,48,77,.6)';
-const TICK = '#8b98b0';
+const TICK = tokens().muted;
 
 /**
  * Chart.js arrives from a CDN under SRI. If it is blocked we fall back to the
@@ -67,8 +68,8 @@ export function createReChart(canvas, Chart) {
   const chart = new Chart(canvas.getContext('2d'), {
     type: 'line',
     data: { labels: [], datasets: [
-      { label: 'Rₑ', data: [], borderColor: '#d29922', backgroundColor: '#d2992222', borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },
-      { label: 'R = 1', data: [], borderColor: '#8b98b0', borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false }
+      { label: 'Rₑ', data: [], borderColor: tokens().warn, backgroundColor: '#d2992222', borderWidth: 2, pointRadius: 0, tension: 0.25, fill: true },
+      { label: 'R = 1', data: [], borderColor: tokens().muted, borderDash: [5, 5], borderWidth: 1, pointRadius: 0, fill: false }
     ] },
     options: opts
   });
@@ -89,7 +90,7 @@ export function createPhaseChart(canvas, Chart) {
   if (!canvas || !Chart) return null;
   const chart = new Chart(canvas.getContext('2d'), {
     type: 'scatter',
-    data: { datasets: [{ label: 'S vs I', data: [], borderColor: '#58A6FF', backgroundColor: '#58A6FF', showLine: true, pointRadius: 0, borderWidth: 2 }] },
+    data: { datasets: [{ label: 'S vs I', data: [], borderColor: tokens().accent, backgroundColor: tokens().accent, showLine: true, pointRadius: 0, borderWidth: 2 }] },
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
       scales: {
@@ -112,10 +113,10 @@ export function createPhaseChart(canvas, Chart) {
 /** Infectious curve across all four models on one axis. */
 export function createComparisonChart(canvas, Chart) {
   if (!canvas || !Chart) return null;
-  const palette = { sir: '#58A6FF', seir: '#d29922', sird: '#f85149', sirv: '#3fb950' };
+  const palette = { sir: tokens().accent, seir: tokens().warn, sird: tokens().danger, sirv: tokens().ok };
   const chart = new Chart(canvas.getContext('2d'), {
     type: 'line', data: { labels: [], datasets: [] }, options: {
-      ...baseOptions('Infectious'), plugins: { legend: { display: true, labels: { color: '#e6edf3' } } }
+      ...baseOptions('Infectious'), plugins: { legend: { display: true, labels: { color: tokens().text } } }
     }
   });
   return {
