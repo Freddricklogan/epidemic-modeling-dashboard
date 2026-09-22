@@ -158,6 +158,8 @@ function reset() {
 /* ------------------------------------------------------------------- shell */
 
 const shell = mountExecShell({
+  theme: 'signal',
+  accent: 'secondary',
   title: 'Epidemic Modeling Dashboard',
   tagline:
     'SIR, SEIR, SIRD and SIRV compartmental models on a Runge–Kutta 4 solver — a synthetic teaching simulation, not a forecast.',
