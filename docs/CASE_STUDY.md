@@ -32,7 +32,7 @@ Worth knowing: rebuilding this exposed that the published dashboard could not ru
 
 ## 6. Evidence
 
-Measured in continuous integration on the current main branch: 73 unit tests passing across four files, 100% statement coverage over the engine, lint and HTML validation clean, CodeQL and dependency scanning enabled. The tests check the integrator's fourth-order convergence against a closed-form solution, assert every model's derivatives sum to within 1e-9 of zero, and hold the population within 0.1% over a hundred-day run. Headless-browser smoke test: zero console errors, zero failed requests; SIRD reports 1.88% deaths on its defaults, the measles preset gives R0 7.20, and playback advanced to day 49. Security posture: Content Security Policy with `default-src 'none'`, the one chart library pinned by Subresource Integrity with a vendored fallback.
+Measured in continuous integration on the current main branch: 81 unit tests passing across four files, 100% statement coverage over the engine, lint and HTML validation clean, CodeQL and dependency scanning enabled. The tests check the integrator's fourth-order convergence against a closed-form solution, assert every model's derivatives sum to within 1e-9 of zero, and hold the population within 0.1% over a hundred-day run. Headless-browser smoke test: zero console errors, zero failed requests; SIRD reports 1.88% deaths on its defaults, the measles preset gives R0 7.20, and playback advanced to day 49. Security posture: Content Security Policy with `default-src 'none'`, the one chart library pinned by Subresource Integrity with a vendored fallback.
 
 ## 7. What it would take to run this in production
 

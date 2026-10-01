@@ -149,7 +149,7 @@ npm run serve
 **Verification — the numbers this repository actually produced:**
 
 ```bash
-npm test         # Test Files 4 passed (4) · Tests 73 passed (73)
+npm test         # Test Files 4 passed (4) · Tests 81 passed (73)
 npm run coverage # All files 100% statements
 npm run lint     # eslint . — clean
 npm run validate # html-validate index.html — clean
